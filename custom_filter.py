@@ -1,10 +1,15 @@
+import os
+from environs import Env
+
 import logging
 import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 
-from config import BOT_TOKEN
+env = Env()  # Создаем экземпляр класса Env
+env.read_env()  # Методом read_env() читаем файл .env и загружаем из него переменные в окружение
+bot_token = env('BOT_TOKEN')  # Получаем и сохраняем значение переменной окружения в переменную bot_token
 
 '''
 Реализуйте функцию custom_filter(), которая на вход принимает строку some_str,
@@ -15,7 +20,7 @@ from config import BOT_TOKEN
 '''
 
 # Создаем объекты бота и диспетчера
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=bot_token)
 dp = Dispatcher()
 
 

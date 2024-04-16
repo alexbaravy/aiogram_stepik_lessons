@@ -1,3 +1,6 @@
+import os
+from environs import Env
+
 import logging
 import sys
 
@@ -7,10 +10,12 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message
 
-from config import BOT_TOKEN
+env = Env()  # Создаем экземпляр класса Env
+env.read_env()  # Методом read_env() читаем файл .env и загружаем из него переменные в окружение
+bot_token = env('BOT_TOKEN')  # Получаем и сохраняем значение переменной окружения в переменную bot_token
 
 # Создаем объекты бота и диспетчера
-bot = Bot(BOT_TOKEN)
+bot = Bot(bot_token)
 dp = Dispatcher()
 
 # Количество попыток, доступных пользователю в игре

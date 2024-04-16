@@ -1,3 +1,6 @@
+import os
+from environs import Env
+
 import logging
 import sys
 
@@ -5,14 +8,17 @@ from aiogram import Bot, Dispatcher
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
-from config import BOT_TOKEN, USER_ID
+env = Env()  # Создаем экземпляр класса Env
+env.read_env()  # Методом read_env() читаем файл .env и загружаем из него переменные в окружение
+bot_token = env('BOT_TOKEN')  # Получаем и сохраняем значение переменной окружения в переменную bot_token
+user_id = env('USER_ID')
 
 # Создаем объекты бота и диспетчера
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=bot_token)
 dp = Dispatcher()
 
 # Список с ID администраторов бота. !!!Замените на ваш!!!
-admin_ids: list[int] = [int(USER_ID)]
+admin_ids: list[int] = [int(user_id)]
 
 
 # Собственный фильтр, проверяющий юзера на админа
