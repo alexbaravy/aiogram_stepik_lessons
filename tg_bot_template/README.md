@@ -150,4 +150,4 @@
 4. [Advanced User Telegram Bot](https://github.com/BaggerFast/AdvancedUserTelegramBot) by BaggerFast
 5. [tgbot_template](https://github.com/Tishka17/tgbot_template) by Tishka17
 6. [tgbot_template](https://github.com/Latand/tgbot_template) by Latand
-7. [simple-aiogram-bot](https://github.com/xALEGORx/simple-aiogram-bot) by 
+7. [simple-aiogram-bot](https://github.com/xALEGORx/simple-aiogram-bot) by xALEGORx
