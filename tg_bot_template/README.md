@@ -141,3 +141,17 @@
 **utils.py**
 
 Модуль с утилитами - вспомогательными скриптами для работы бота.
+
+
+
+
+
+**Пригодится в свое время.**
+
+1. [aiogram_bot_template](https://github.com/Forden/aiogram-bot-template) by Forden
+2. [aiogram_template](https://github.com/F0rzend/aiogram_template) by F0rzend
+3. [aiogram_template](https://github.com/bomzheg/aiogram_template) by bomzheg
+4. [Advanced User Telegram Bot](https://github.com/BaggerFast/AdvancedUserTelegramBot) by BaggerFast
+5. [tgbot_template](https://github.com/Tishka17/tgbot_template) by Tishka17
+6. [tgbot_template](https://github.com/Latand/tgbot_template) by Latand
+7. [simple-aiogram-bot](https://github.com/xALEGORx/simple-aiogram-bot) by xALEGORx
