@@ -40,7 +40,7 @@ async def process_placeholder_command(message: Message):
     )
 
 
-@dp.message(F.text == "Кнопка 1" or F.text == "Кнопка 2")
+@dp.message(lambda message: message.text in ["Кнопка 1", "Кнопка 2"])
 async def process_placeholder_command(message: Message):
     await message.answer(
         text='Молодец, нажал нужную кнопку',
