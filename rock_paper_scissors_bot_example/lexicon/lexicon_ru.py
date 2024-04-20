@@ -26,11 +26,17 @@ LEXICON_RU: dict[str, str] = {
     'rock': '🗿',
     'paper': '📜',
     'scissors': '✂️',
-    'start_button': 'Запуск бота',
     'yes_button': 'Давай!',
     'no_button': 'Не хочу!',
     'help_button': 'Помощь',
     'stat_button': 'Статистика',
     'exit_button': 'Выйти',
 
+}
+
+LEXICON_COMMANDS_RU: dict[str, str] = {
+    '/start': 'Запуск бота',
+    '/help': 'Помощь',
+    '/stat': 'Статистика',
+    '/exit': 'Выйти'
 }

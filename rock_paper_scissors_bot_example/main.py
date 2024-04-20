@@ -2,13 +2,13 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
-from aiogram.types import BotCommand
 from aiogram.enums import ParseMode
 from aiogram.client.bot import DefaultBotProperties
 
 from config_data.config import Config, load_config
 from handlers import user_handlers, game_handlers, other_handlers
-from lexicon.lexicon_ru import LEXICON_RU
+from keyboards.set_menu import set_main_menu
+
 
 # Инициализируем логгер
 logger = logging.getLogger(__name__)
@@ -35,24 +35,7 @@ async def main() -> None:
     dp = Dispatcher()
 
     # Создаем асинхронную функцию
-    async def set_main_menu(bot: Bot):
-        # Создаем список с командами и их описанием для кнопки menu
-        main_menu_commands = [
-            BotCommand(command='/start',
-                       description=LEXICON_RU['start_button']),
-            BotCommand(command='/help',
-                       description=LEXICON_RU['help_button']),
-            BotCommand(command='/stat',
-                       description=LEXICON_RU['stat_button']),
-            BotCommand(command='/exit',
-                       description=LEXICON_RU['exit_button']),
-        ]
-
-        await bot.set_my_commands(main_menu_commands)
-
-    # Регистрируем асинхронную функцию в диспетчере,
-    # которая будет выполняться на старте бота,
-    dp.startup.register(set_main_menu)
+    await set_main_menu(bot)
 
     # Регистриуем роутеры в диспетчере
     dp.include_router(user_handlers.router)
