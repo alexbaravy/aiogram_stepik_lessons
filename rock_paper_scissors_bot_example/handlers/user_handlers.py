@@ -19,7 +19,13 @@ async def process_start_command(message: Message):
                          one_time_keyboard=True)
 
 
+# Функция для проверки текста сообщения
+def is_help_button(message: Message) -> bool:
+    return message.text == LEXICON_RU['help_button']
+
+
 # Этот хэндлер срабатывает на кнопку help_button
+@router.message(Command(commands='help'))
 @router.message(F.text == LEXICON_RU['help_button'])
 async def process_help_command(message: Message):
     if message.from_user.id not in users:
@@ -28,6 +34,7 @@ async def process_help_command(message: Message):
 
 
 # Этот хэндлер срабатывает на кнопку stat_button
+@router.message(Command(commands='stat'))
 @router.message(F.text == LEXICON_RU['stat_button'])
 async def process_stat_command(message: Message):
     if message.from_user.id not in users:
@@ -64,6 +71,7 @@ async def process_play_command(message: Message):
 
 
 # Этот хэндлер срабатывает на команду no_button
+@router.message(Command(commands='exit'))
 @router.message(F.text.in_([LEXICON_RU['no_button'], LEXICON_RU['exit_button']]))
 async def process_play_command(message: Message):
     await message.answer(text=LEXICON_RU['stop'],
