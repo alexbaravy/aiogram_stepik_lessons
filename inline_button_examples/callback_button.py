@@ -57,10 +57,12 @@ async def process_start_command(message: Message):
 # с data 'big_button_1_pressed'
 @dp.callback_query(F.data == 'big_button_1_pressed')
 async def process_button_1_press(callback: types.CallbackQuery):
-    await callback.message.edit_text(
-        text='Была нажата БОЛЬШАЯ КНОПКА 1',
-        reply_markup=callback.message.reply_markup
-    )
+    if callback.message.text != 'Была нажата БОЛЬШАЯ КНОПКА 2':
+        await callback.message.edit_text(
+            text='Была нажата БОЛЬШАЯ КНОПКА 1',
+            reply_markup=callback.message.reply_markup
+        )
+    await callback.answer()
 
 
 # Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
