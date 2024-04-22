@@ -1,4 +1,6 @@
-﻿import asyncio
+﻿import os
+import sys
+import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
@@ -7,6 +9,7 @@ from aiogram.enums import ParseMode
 from config_data.config import Config, load_config
 from handlers import user_handlers, other_handlers
 from keyboards.main_menu import set_main_menu
+from services.file_handling import BOOK_PATH
 
 # Инициализируем логгер
 logger = logging.getLogger(__name__)
@@ -40,6 +43,9 @@ async def main():
     logger.info('Подключаем роутеры')
     dp.include_router(user_handlers.router)
     dp.include_router(other_handlers.router)
+
+    # Где лежат наши книги?
+    logger.info(f'Где лежат наши книги: {os.path.join(sys.path[0], os.path.normpath(BOOK_PATH))}')
 
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
