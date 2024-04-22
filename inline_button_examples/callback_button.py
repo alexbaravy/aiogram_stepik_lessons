@@ -1,10 +1,9 @@
 from environs import Env
 import logging
 
-from aiogram import Bot, Dispatcher, types, F
+from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
-
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
 
 # Инициализируем логгер
 logger = logging.getLogger(__name__)
@@ -22,8 +21,6 @@ bot_token = env('BOT_TOKEN')  # Получаем и сохраняем знач�
 # Создаем объекты бота и диспетчера
 bot = Bot(token=bot_token)
 dp = Dispatcher()
-
-
 
 # Создаем объекты инлайн-кнопок
 big_button_1 = InlineKeyboardButton(
@@ -62,7 +59,7 @@ async def process_button_1_press(callback: types.CallbackQuery):
             text='Была нажата БОЛЬШАЯ КНОПКА 1',
             reply_markup=callback.message.reply_markup
         )
-    await callback.answer()
+    await callback.answer(text='Ура! Нажата кнопка 1', show_alert=True)
 
 
 # Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
@@ -74,7 +71,7 @@ async def process_button_2_press(callback: types.CallbackQuery):
             text='Была нажата БОЛЬШАЯ КНОПКА 2',
             reply_markup=callback.message.reply_markup
         )
-    await callback.answer()
+    await callback.answer(text='Ура! Нажата кнопка 2', show_alert=True)
 
 
 # # Обработчик для нажатия на инлайн-кнопки
