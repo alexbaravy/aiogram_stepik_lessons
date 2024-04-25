@@ -14,6 +14,3 @@ def create_pagination_keyboard(*buttons: str) -> InlineKeyboardMarkup:
                    )
     # Возвращаем объект инлайн-клавиатуры
     return kb_builder.as_markup()
-
-
-print(create_pagination_keyboard)

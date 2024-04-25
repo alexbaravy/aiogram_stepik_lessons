@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from lexicon.lexicon import LEXICON
+from lexicon.lexicon_ru import LEXICON
 from services.file_handling import book
 
 
@@ -11,7 +11,7 @@ def create_bookmarks_keyboard(*button: int) -> InlineKeyboardMarkup:
     for button in sorted(button):
         kb_builder.row(InlineKeyboardButton(
             text=f'{button} - {book[button][:100]}',
-            callback_data=str[button]
+            callback_data=str(button)
         ))
     kb_builder.row(
         InlineKeyboardButton(
