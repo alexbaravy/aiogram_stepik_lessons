@@ -7,4 +7,4 @@ router: Router = Router()
 
 @router.message()
 async def send_something(message: Message):
-    await message.reply(text=LEXICON_RU['something'])
+    await message.reply(text=LEXICON['something'])
