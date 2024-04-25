@@ -1,6 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message
-from lexicon.lexicon_ru import LEXICON_RU
+from lexicon.lexicon_ru import LEXICON
 
 # Инициализируем роутер уровня модуля
 router: Router = Router()

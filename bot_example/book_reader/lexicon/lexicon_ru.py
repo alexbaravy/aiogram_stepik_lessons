@@ -1,4 +1,4 @@
-LEXICON_RU: dict[str, str] = {
+LEXICON: dict[str, str] = {
     'forward': '>>',
     'backward': '<<',
     '/start': '<b>Привет, читатель!</b>\n\nЭто бот, в котором '
@@ -22,7 +22,7 @@ LEXICON_RU: dict[str, str] = {
     'cancel_text': '/continue - продолжить чтение'
 }
 
-LEXICON_COMMANDS_RU: dict[str, str] = {
+LEXICON_COMMANDS: dict[str, str] = {
     '/beginning': 'В начало книги',
     '/continue': 'Продолжить чтение',
     '/bookmarks': 'Мои закладки',
