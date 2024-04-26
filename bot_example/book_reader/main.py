@@ -21,7 +21,7 @@ async def main():
     logging.basicConfig(
         level=logging.INFO,
         format='%(filename)s:%(lineno)d #%(levelname)-8s '
-               '[%(asctime)s] - %(name)s - %(message)s')
+               '[%(asctime)s] - %(name)s - %(funcName)s - %(message)s')
 
     # Выводим в консоль информацию о начале запуска бота
     logger.info('Starting bot')
@@ -46,10 +46,8 @@ async def main():
 
     # Где лежат наши книги?
     logger.info(f'Где лежат наши книги: {os.path.join(sys.path[0], os.path.normpath(BOOK_PATH))}')
-
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
-
 
 asyncio.run(main())

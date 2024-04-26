@@ -1,178 +1,193 @@
-from copy import deepcopy
+import logging
+
+from functools import wraps
+from enum import Enum
 
 from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, Message
-from database.database import user_dict_template, users_db
+
+
 from filters.filters import IsDelBookmarkCallbackData, IsDigitCallbackData
 from keyboards.bookmarks_kb import (create_bookmarks_keyboard,
                                     create_edit_keyboard)
 from keyboards.pagination_kb import create_pagination_keyboard
-from lexicon.lexicon_ru import LEXICON
+from lexicon.lexicon_ru import LEXICON, DEFAULT_TEXT
+
+from services.user_manager import UserManager
 from services.file_handling import book
+
+# Инициализируем логгер
+logger = logging.getLogger(__name__)
 
 router = Router()
 
+class PageDirection(Enum):
+    FORWARD = 'forward'
+    BACKWARD = 'backward'
 
-# Этот хэндлер будет срабатывать на команду "/start" -
-# добавлять пользователя в базу данных, если его там еще не было
-# и отправлять ему приветственное сообщение
+
+def log_function_call(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        logger.info(f"START {func.__name__}")
+        try:
+            result = await func(*args, **kwargs)
+            return result
+        finally:
+            logger.info(f"FINISH {func.__name__}")
+
+    return wrapper
+
+
+# Инициализация UserManager
+user_manager = UserManager()
+
+# Функция пагинации клавиатуры
+def get_pagination_keyboard(user_id: int):
+    page_info = f'{user_manager.get_user_page(user_id)}/{len(book)}'
+    return create_pagination_keyboard(PageDirection.BACKWARD.value, page_info, PageDirection.FORWARD.value)
+
+
+# /start
 @router.message(CommandStart())
+@log_function_call
 async def process_start_command(message: Message):
-    await message.answer(LEXICON[message.text])
-    if message.from_user.id not in users_db:
-        users_db[message.from_user.id] = deepcopy(user_dict_template)
+    user_manager.ensure_user_exists(message.from_user.id)
+    await message.answer(LEXICON.get(message.text, DEFAULT_TEXT))
 
 
-# Этот хэндлер будет срабатывать на команду "/help"
-# и отправлять пользователю сообщение со списком доступных команд в боте
+# /help
 @router.message(Command(commands='help'))
+@log_function_call
 async def process_help_command(message: Message):
-    await message.answer(LEXICON[message.text])
+    user_manager.ensure_user_exists(message.from_user.id)
+    await message.answer(LEXICON.get(message.text, DEFAULT_TEXT))
 
 
-# Этот хэндлер будет срабатывать на команду "/beginning"
-# и отправлять пользователю первую страницу книги с кнопками пагинации
+# /beginning - отправлять пользователю первую страницу книги с кнопками пагинации
 @router.message(Command(commands='beginning'))
+@log_function_call
 async def process_beginning_command(message: Message):
-    users_db[message.from_user.id]['page'] = 1
-    text = book[users_db[message.from_user.id]['page']]
-    await message.answer(
-        text=text,
-        reply_markup=create_pagination_keyboard(
-            'backward',
-            f'{users_db[message.from_user.id]["page"]}/{len(book)}',
-            'forward'
-        )
-    )
+    text = book[user_manager.reset_user_page(message.from_user.id)]
+    reply_markup = get_pagination_keyboard(message.from_user.id)
+    await message.answer(text=text, reply_markup=reply_markup)
 
 
-# Этот хэндлер будет срабатывать на команду "/continue"
-# и отправлять пользователю страницу книги, на которой пользователь
-# остановился в процессе взаимодействия с ботом
+# /continue - отправлять пользователю страницу книги, на которой пользователь остановился
 @router.message(Command(commands='continue'))
+@log_function_call
 async def process_continue_command(message: Message):
-    text = book[users_db[message.from_user.id]['page']]
-    await message.answer(
-        text=text,
-        reply_markup=create_pagination_keyboard(
-            'backward',
-            f'{users_db[message.from_user.id]["page"]}/{len(book)}',
-            'forward'
-        )
-    )
+    text = book[user_manager.get_user_page(message.from_user.id)]
+    reply_markup = get_pagination_keyboard(message.from_user.id)
+    await message.answer(text=text, reply_markup=reply_markup)
 
 
-# Этот хэндлер будет срабатывать на команду "/bookmarks"
-# и отправлять пользователю список сохраненных закладок,
-# если они есть или сообщение о том, что закладок нет
+# /bookmarks - список закладок
 @router.message(Command(commands='bookmarks'))
+@log_function_call
 async def process_bookmarks_command(message: Message):
-    if users_db[message.from_user.id]["bookmarks"]:
+    bookmarks = user_manager.get_user_bookmarks(message.from_user.id)
+    if bookmarks:
         await message.answer(
-            text=LEXICON[message.text],
-            reply_markup=create_bookmarks_keyboard(
-                *users_db[message.from_user.id]["bookmarks"]
-            )
+            text=LEXICON.get(message.text, DEFAULT_TEXT),
+            reply_markup=create_bookmarks_keyboard(*bookmarks)
         )
     else:
-        await message.answer(text=LEXICON['no_bookmarks'])
+        await message.answer(text=LEXICON.get('no_bookmarks', DEFAULT_TEXT))
 
 
-# Этот хэндлер будет срабатывать на нажатие инлайн-кнопки "вперед"
-# во время взаимодействия пользователя с сообщением-книгой
-@router.callback_query(F.data == 'forward')
+# Функция для обработки хэндлеров "вперед" и "назад"
+async def update_message_page(callback: CallbackQuery, page_direction: PageDirection):
+    user_id = callback.from_user.id
+    current_page = user_manager.get_user_page(user_id)
+    book_length = len(book)
+    if page_direction == PageDirection.FORWARD:
+        if current_page >= book_length:
+            await callback.answer(LEXICON.get('last_page', DEFAULT_TEXT))
+            return
+        current_page = user_manager.change_user_page(user_id, 1)
+    elif page_direction == PageDirection.BACKWARD:
+        if current_page <= 1:
+            await callback.answer(LEXICON.get('first_page', DEFAULT_TEXT))
+            return
+        current_page = user_manager.change_user_page(user_id, -1)
+
+    text = book[current_page]
+    reply_markup = get_pagination_keyboard(user_id)
+    await callback.message.edit_text(text=text, reply_markup=reply_markup)
+
+
+# Листать "Вперед"
+@router.callback_query(F.data == PageDirection.FORWARD.value)
+@log_function_call
 async def process_forward_press(callback: CallbackQuery):
-    if users_db[callback.from_user.id]['page'] < len(book):
-        users_db[callback.from_user.id]['page'] += 1
-        text = book[users_db[callback.from_user.id]['page']]
-        await callback.message.edit_text(
-            text=text,
-            reply_markup=create_pagination_keyboard(
-                'backward',
-                f'{users_db[callback.from_user.id]["page"]}/{len(book)}',
-                'forward'
-            )
-        )
-    await callback.answer()
+    await update_message_page(callback, PageDirection.FORWARD)
 
 
-# Этот хэндлер будет срабатывать на нажатие инлайн-кнопки "назад"
-# во время взаимодействия пользователя с сообщением-книгой
-@router.callback_query(F.data == 'backward')
+# Листать "Назад"
+@router.callback_query(F.data == PageDirection.BACKWARD.value)
+@log_function_call
 async def process_backward_press(callback: CallbackQuery):
-    if users_db[callback.from_user.id]['page'] > 1:
-        users_db[callback.from_user.id]['page'] -= 1
-        text = book[users_db[callback.from_user.id]['page']]
-        await callback.message.edit_text(
-            text=text,
-            reply_markup=create_pagination_keyboard(
-                'backward',
-                f'{users_db[callback.from_user.id]["page"]}/{len(book)}',
-                'forward'
-            )
-        )
-    await callback.answer()
+    await update_message_page(callback, PageDirection.BACKWARD)
 
 
-# Этот хэндлер будет срабатывать на нажатие инлайн-кнопки
-# с номером текущей страницы и добавлять текущую страницу в закладки
+# Добавить в закладки
 @router.callback_query(lambda x: '/' in x.data and x.data.replace('/', '').isdigit())
+@log_function_call
 async def process_page_press(callback: CallbackQuery):
-    users_db[callback.from_user.id]['bookmarks'].add(
-        users_db[callback.from_user.id]['page']
-    )
-    await callback.answer('Страница добавлена в закладки!')
+    user_id = callback.from_user.id
+    bookmarks = user_manager.get_user_bookmarks(user_id)
+    current_page = user_manager.get_user_page(user_id)
+    bookmarks.add(current_page)
+
+    await callback.answer(LEXICON.get('added_bookmarks', DEFAULT_TEXT))
 
 
-# Этот хэндлер будет срабатывать на нажатие инлайн-кнопки
-# с закладкой из списка закладок
+# Перейти по закладке
 @router.callback_query(IsDigitCallbackData())
+@log_function_call
 async def process_bookmark_press(callback: CallbackQuery):
-    text = book[int(callback.data)]
-    users_db[callback.from_user.id]['page'] = int(callback.data)
-    await callback.message.edit_text(
-        text=text,
-        reply_markup=create_pagination_keyboard(
-            'backward',
-            f'{users_db[callback.from_user.id]["page"]}/{len(book)}',
-            'forward'
-        )
-    )
+    user_id = callback.from_user.id
+    page = int(callback.data)
+    user_manager.go_bookmark(user_id, page)
+    text = book[page]
+    reply_markup = get_pagination_keyboard(user_id)
+    await callback.message.edit_text(text=text, reply_markup=reply_markup)
 
 
-# Этот хэндлер будет срабатывать на нажатие инлайн-кнопки
-# "редактировать" под списком закладок
+# Редактировать закладки
 @router.callback_query(F.data == 'edit_bookmarks')
+@log_function_call
 async def process_edit_press(callback: CallbackQuery):
+    user_id = callback.from_user.id
+    bookmarks = user_manager.get_user_bookmarks(user_id)
     await callback.message.edit_text(
-        text=LEXICON[callback.data],
-        reply_markup=create_edit_keyboard(
-            *users_db[callback.from_user.id]["bookmarks"]
-        )
+        text=LEXICON.get(callback.data, DEFAULT_TEXT),
+        reply_markup=create_edit_keyboard(*bookmarks)
     )
 
 
-# Этот хэндлер будет срабатывать на нажатие инлайн-кнопки
-# "отменить" во время работы со списком закладок (просмотр и редактирование)
+# Отменить в Закладках
 @router.callback_query(F.data == 'cancel')
+@log_function_call
 async def process_cancel_press(callback: CallbackQuery):
-    await callback.message.edit_text(text=LEXICON['cancel_text'])
+    await callback.message.edit_text(text=LEXICON.get('cancel_text', DEFAULT_TEXT))
 
 
-# Этот хэндлер будет срабатывать на нажатие инлайн-кнопки
-# с закладкой из списка закладок к удалению
+# Удалить закладку
 @router.callback_query(IsDelBookmarkCallbackData())
+@log_function_call
 async def process_del_bookmark_press(callback: CallbackQuery):
-    users_db[callback.from_user.id]['bookmarks'].remove(
-        int(callback.data[:-3])
-    )
-    if users_db[callback.from_user.id]['bookmarks']:
+    user_id = callback.from_user.id
+    page_to_remove = int(callback.data[:-3])
+    bookmarks = user_manager.get_user_bookmarks(user_id)
+    bookmarks.discard(page_to_remove)
+
+    if bookmarks:
         await callback.message.edit_text(
-            text=LEXICON['/bookmarks'],
-            reply_markup=create_edit_keyboard(
-                *users_db[callback.from_user.id]["bookmarks"]
-            )
+            text=LEXICON.get('/bookmarks', DEFAULT_TEXT),
+            reply_markup=create_edit_keyboard(*bookmarks)
         )
     else:
-        await callback.message.edit_text(text=LEXICON['no_bookmarks'])
+        await callback.message.edit_text(text=LEXICON.get('no_bookmarks', DEFAULT_TEXT))
