@@ -53,7 +53,7 @@ async def process_start_command(message: Message):
 # Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
 # с data 'big_button_1_pressed'
 @dp.callback_query(F.data == 'big_button_1_pressed')
-async def process_button_1_press(callback: types.CallbackQuery):
+async def process_button_1_press(callback: CallbackQuery):
     if callback.message.text != 'Была нажата БОЛЬШАЯ КНОПКА 2':
         await callback.message.edit_text(
             text='Была нажата БОЛЬШАЯ КНОПКА 1',
@@ -65,7 +65,7 @@ async def process_button_1_press(callback: types.CallbackQuery):
 # Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
 # с data 'big_button_2_pressed'
 @dp.callback_query(F.data == 'big_button_2_pressed')
-async def process_button_2_press(callback: types.CallbackQuery):
+async def process_button_2_press(callback: CallbackQuery):
     if callback.message.text != 'Была нажата БОЛЬШАЯ КНОПКА 2':
         await callback.message.edit_text(
             text='Была нажата БОЛЬШАЯ КНОПКА 2',
@@ -76,7 +76,7 @@ async def process_button_2_press(callback: types.CallbackQuery):
 
 # # Обработчик для нажатия на инлайн-кнопки
 # @dp.callback_query(lambda query: True)
-# async def process_callback_button(query: types.CallbackQuery):
+# async def process_callback_button(query: CallbackQuery):
 #     # Выводим в лог информацию о нажатой кнопке
 #     logger.info(f'Button "{query.data}" pressed by user {query.from_user.id}')
 #
