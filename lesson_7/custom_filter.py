@@ -13,6 +13,7 @@ import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message
+from aiogram.filters import Command
 
 # Load environment variables
 env = Env()
@@ -28,6 +29,11 @@ def sum_divisible_by_seven(numbers):
     """Sum integers from the list that are divisible by 7."""
     total_sum = sum(num for num in numbers if isinstance(num, int) and num % 7 == 0)
     return total_sum
+
+
+@dp.message(Command(commands="start"))
+async def process_start_command(message: Message):
+    await message.answer("Привет. Введи строку состоящую из цифр и букв.\nПример: 12 5 7 h a s 14 24")
 
 
 @dp.message()
@@ -51,6 +57,7 @@ async def custom_filter(message: Message):
         await message.answer(f'False: Сумма чисел, делящихся на 7 из вашего сообщения, превышает 83: {total_sum}')
     else:
         await message.answer(f'True: Сумма чисел, делящихся на 7 из вашего сообщения, не превышает 83: {total_sum}')
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
