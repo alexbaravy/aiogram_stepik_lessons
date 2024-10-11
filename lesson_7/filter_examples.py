@@ -1,4 +1,4 @@
-'''7.4 Фильтры'''
+"""7.4 Фильтры"""
 
 from dataclasses import dataclass, field
 from environs import Env
