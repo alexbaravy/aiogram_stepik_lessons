@@ -12,21 +12,22 @@ import sys
 from aiogram import Bot, Dispatcher, F
 from aiogram.types import Message
 
-
 # Load environment variables
 env = Env()
 env.read_env()
 bot_token = env('BOT_TOKEN')
+user_id = end('USER_ID')
 
 # Create bot and dispatcher instances
 bot = Bot(token=bot_token)
 dp = Dispatcher()
 
 
-@dp.message(F.from_user.id == 6165145864)
+@dp.message(F.from_user.id == user_id)
 async def send_message(message: Message):
     print(message)
     await message.answer(text=f'Message from {message.from_user.id}')
+
 
 @dp.message()
 async def send_other_message(message: Message):
