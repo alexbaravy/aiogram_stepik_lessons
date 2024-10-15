@@ -27,6 +27,7 @@ admin_ids: list[int] = [int(user_id)]
 
 
 class IsAdmin(BaseFilter):
+    """Filter to check if the user is an admin."""
     def __init__(self, admin_ids: list[int]) -> None:
         self.admin_ids = admin_ids
 
@@ -35,12 +36,14 @@ class IsAdmin(BaseFilter):
 
 
 @dp.message(IsAdmin(admin_ids))
-async def answer_if_admins_update(message: Message):
+async def answer_if_admin(message: Message):
+    """Respond to admin users."""
     await message.answer(text='You\'re Admin')
 
 
 @dp.message()
-async def answer_if_not_admins_update(message: Message):
+async def answer_if_not_admin(message: Message):
+    """Respond to non-admin users."""
     await message.answer(text='You\'re not Admin')
 
 
