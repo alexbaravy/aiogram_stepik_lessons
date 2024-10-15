@@ -34,10 +34,9 @@ async def send_foto_or_admin(message: Message):
     await message.answer(text='This is photo or admin')
 
 
-@dp.message(F.from_user.id == ~int(user_id))  # OR and AND
+@dp.message(~F.photo)  # NOT
 async def send_not_photo(message: Message):
-    await message.answer(text='This is voice or video from user')
-
+    await message.answer(text='This is no photo')
 
 
 if __name__ == '__main__':
